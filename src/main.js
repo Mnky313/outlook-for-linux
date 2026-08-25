@@ -6,9 +6,9 @@ const path = require('node:path');
 const { isInternalNav, isOpenableExternal } = require('./url-policy');
 
 const START_URL = 'https://outlook.office.com/mail';
+const APP_ICON = path.join(__dirname, '..', 'assets', 'icons', 'outlook-for-linux-256.png');
 
 // --- Link routing: single choke point for every webContents the app creates ---
-const APP_ICON = path.join(__dirname, '..', 'assets', 'icons', 'outlook-for-linux-256.png');
 
 
 // Strip the Electron marker so Microsoft's browser gating serves the full page.
@@ -77,6 +77,7 @@ function createWindow(strippedUA) {
     width: state.width,
     height: state.height,
     minWidth: 480,
+    minHeight: 320,
     title: 'Outlook',
     icon: APP_ICON,
     backgroundColor: '#f3f2f1',
