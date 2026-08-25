@@ -2,13 +2,14 @@
 # Contributor: itonia149 <itonia149@users.noreply.github.com>
 pkgname=outlook-for-linux
 pkgver=0.1.1
+pkgrel=1
 pkgdesc="Unofficial Electron wrapper for Microsoft Outlook Web"
 arch=('any')
 url="https://github.com/itonia149/outlook-for-linux"
 license=('MIT')
 depends=('electron' 'hicolor-icon-theme')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/itonia149/outlook-for-linux/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')  # filled with the real v0.1.1 hash below, never retagged
+sha256sums=('68276bff7d729eba052adce9090f0f6698ae0506184e6dea2875e4428e060d39')
 
 package() {
   cd "$srcdir/$pkgname-$pkgver"
