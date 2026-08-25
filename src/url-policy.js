@@ -4,9 +4,10 @@ const ALLOWED_NAV_HOSTS = [
   'outlook.office.com',
   'outlook.office365.com',
   'outlook.live.com',
-  'login.microsoftonline.com',
   'login.live.com',
+  'login.microsoftonline.com',
   'signup.live.com',
+  'us.azureauth.duosecurity.com',
 ];
 
 const OPENABLE_PROTOCOLS = new Set(['https:', 'http:', 'mailto:']);
