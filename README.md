@@ -39,6 +39,25 @@ entry and hicolor icons. No `MimeType=` registration — your default mail clien
 Finalizing the PKGBUILD (real tarball source + checksums) happens at first release;
 until then run from source as above.
 
+## Install (user-local, from this checkout)
+
+```sh
+install -m 755 packaging/outlook-for-linux.sh ~/.local/bin/outlook-for-linux
+cp packaging/outlook-for-linux.desktop ~/.local/share/applications/
+for s in 16 32 48 64 128 256 512; do
+  install -Dm644 assets/icons/outlook-for-linux-$s.png \
+    ~/.local/share/icons/hicolor/${s}x${s}/apps/outlook-for-linux.png
+done
+install -Dm644 assets/outlook-for-linux.svg \
+  ~/.local/share/icons/hicolor/scalable/apps/outlook-for-linux.svg
+update-desktop-database ~/.local/share/applications
+gtk-update-icon-cache -tf ~/.local/share/icons/hicolor
+```
+
+Icon source: official Outlook product mark from Microsoft's Office Fabric
+brand-icons CDN (`static2.sharepointonline.com/.../brand-icons/product/svg/outlook_48x1.svg`),
+rendered to the hicolor size set with rsvg-convert. Microsoft trademark — personal use.
+
 ## Notes
 
 - Window state (bounds, maximized) persists to `$XDG_CONFIG_HOME/outlook-for-linux/window-state.json`.
