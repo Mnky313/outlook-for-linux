@@ -3,13 +3,13 @@
 const { app, BrowserWindow, Menu, session, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
-const { isInternalNav, isOpenableExternal } = require('./url-policy');
 
 const START_URL = 'https://outlook.office.com/mail';
 const APP_ICON = path.join(__dirname, '..', 'assets', 'icons', 'outlook-for-linux-256.png');
 
 // --- Link routing: single choke point for every webContents the app creates ---
 
+const { isInternalNav, isOpenableExternal, isAuthHost } = require('./url-policy');
 
 // Strip the Electron marker so Microsoft's browser gating serves the full page.
 // Only webContents.setUserAgent changes navigator.userAgent (Electron 44 ignores
@@ -20,16 +20,26 @@ function openInBrowser(url) {
     console.error(`[url-policy] dropped non-openable URL: ${url}`);
     return;
   }
+  console.error(`[url-policy] routing to system browser: ${url}`);
   shell.openExternal(url);
 }
 
 app.on('web-contents-created', (_e, wc) => {
   wc.setWindowOpenHandler(({ url }) => {
+    // Inside an auth flow the IdP may open popups (consent, FIDO, signup);
+    // those must render in-app or the flow breaks. Everywhere else, route out.
+    if (isAuthHost(wc.getURL()) && isOpenableExternal(url)) {
+      return { action: 'allow' };
+    }
     openInBrowser(url);
     return { action: 'deny' };
   });
   wc.on('will-navigate', (e, url) => {
-    if (!isInternalNav(url)) {
+    // While the current page is an auth host, the flow may bounce across
+    // unpredictable IdP hosts (signup, per-tenant endpoints) — let https
+    // navigations render in-app. Reading mail: everything non-internal
+    // goes to the system browser.
+    if (!isInternalNav(url) && !isAuthHost(wc.getURL())) {
       e.preventDefault();
       openInBrowser(url);
     }

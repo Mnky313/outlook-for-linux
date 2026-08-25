@@ -11,23 +11,52 @@ const ALLOWED_NAV_HOSTS = [
 ];
 
 // Institutional 2FA (Duo) bounces across per-tenant hosts (us.azureauth.*,
-// api-*.duosecurity.com); allow the vendor's auth domain by suffix instead of
-// chasing exact hostnames. Pattern borrowed from teams-for-linux.
+// api-*.duosecurity.com); allow the vendor's auth domain by suffix.
 const ALLOWED_NAV_HOST_SUFFIXES = ['.duosecurity.com'];
 
-function isAllowedHost(hostname) {
-  return (
-    ALLOWED_NAV_HOSTS.includes(hostname) ||
-    ALLOWED_NAV_HOST_SUFFIXES.some((s) => hostname.endsWith(s))
-  );
-}
-
 const OPENABLE_PROTOCOLS = new Set(['https:', 'http:', 'mailto:']);
+
+// Identity-provider infrastructure. No static list can enumerate every host an
+// auth flow touches (signup, device login, per-tenant endpoints), so instead of
+// allowlisting targets we detect being INSIDE an auth flow: main.js allows
+// any https navigation/popups while the current page is an auth host, and
+// routes links out everywhere else (reading mail).
+const AUTH_HOSTS = [
+  'login.microsoftonline.com',
+  'login.microsoft.com',
+  'login.live.com',
+  'signup.live.com',
+  'account.live.com',
+];
+const AUTH_HOST_SUFFIXES = [
+  '.microsoftonline.com',
+  '.duosecurity.com',
+  '.msauth.net',
+  '.msftauth.net',
+  '.msidentity.com',
+];
+
+function isAuthHost(urlStr) {
+  try {
+    const u = new URL(urlStr);
+    return (
+      u.protocol === 'https:' &&
+      (AUTH_HOSTS.includes(u.hostname) ||
+        AUTH_HOST_SUFFIXES.some((s) => u.hostname.endsWith(s)))
+    );
+  } catch {
+    return false;
+  }
+}
 
 function isInternalNav(urlStr) {
   try {
     const u = new URL(urlStr);
-    return u.protocol === 'https:' && isAllowedHost(u.hostname);
+    return (
+      u.protocol === 'https:' &&
+      (ALLOWED_NAV_HOSTS.includes(u.hostname) ||
+        ALLOWED_NAV_HOST_SUFFIXES.some((s) => u.hostname.endsWith(s)))
+    );
   } catch { return false; }
 }
 
@@ -38,4 +67,4 @@ function isOpenableExternal(urlStr) {
   } catch { return false; }
 }
 
-module.exports = { isInternalNav, isOpenableExternal };
+module.exports = { isInternalNav, isOpenableExternal, isAuthHost };
