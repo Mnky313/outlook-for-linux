@@ -1,0 +1,38 @@
+# Maintainer: thanic
+pkgname=outlook-for-linux
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Unofficial Electron wrapper for Microsoft Outlook Web"
+arch=('any')
+url="https://github.com/thanic/outlook-for-linux"
+license=('MIT')
+depends=('electron' 'hicolor-icon-theme')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  # Application sources (no node_modules: electron comes from the system dep)
+  install -d "$pkgdir/usr/lib/$pkgname"
+  cp -r src assets "$pkgdir/usr/lib/$pkgname/"
+  install -Dm644 package.json "$pkgdir/usr/lib/$pkgname/package.json"
+
+  # Launcher script running the app with system electron
+  install -d "$pkgdir/usr/bin"
+  cat > "$pkgdir/usr/bin/$pkgname" <<EOF
+#!/bin/sh
+exec electron /usr/lib/$pkgname "\$@"
+EOF
+  chmod 755 "$pkgdir/usr/bin/$pkgname"
+
+  # Desktop entry (deliberately no MimeType= handler: not replacing the user's mail client)
+  install -Dm644 packaging/$pkgname.desktop \
+    "$pkgdir/usr/share/applications/$pkgname.desktop"
+
+  # Icons into hicolor
+  for size in 16 32 48 64 128 256 512; do
+    install -Dm644 "assets/icons/$pkgname-$size.png" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$pkgname.png"
+  done
+}

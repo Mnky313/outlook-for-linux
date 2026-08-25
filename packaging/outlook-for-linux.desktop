@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Outlook
+Comment=Unofficial Microsoft Outlook Web wrapper
+Exec=outlook-for-linux
+Icon=outlook-for-linux
+StartupWMClass=Outlook
+Categories=Network;Email;
+Terminal=false

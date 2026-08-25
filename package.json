@@ -1,0 +1,15 @@
+{
+  "name": "outlook-for-linux",
+  "productName": "Outlook",
+  "version": "0.1.0",
+  "description": "Unofficial Electron wrapper for Outlook Web (outlook.office.com)",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node src/url-policy.test.js"
+  },
+  "devDependencies": {
+    "electron": "^44.0.0"
+  }
+}
