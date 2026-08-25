@@ -13,6 +13,9 @@ const ALLOWED_NAV_HOSTS = [
 // Institutional 2FA (Duo) bounces across per-tenant hosts (us.azureauth.*,
 // api-*.duosecurity.com); allow the vendor's auth domain by suffix.
 const ALLOWED_NAV_HOST_SUFFIXES = ['.duosecurity.com'];
+// Microsoft is migrating the Office app shells (OWA, m365 portal) to
+// *.cloud.microsoft — same category as outlook.office.com.
+const ALLOWED_NAV_APP_SUFFIXES = ['.cloud.microsoft'];
 
 const OPENABLE_PROTOCOLS = new Set(['https:', 'http:', 'mailto:']);
 
@@ -55,9 +58,13 @@ function isInternalNav(urlStr) {
     return (
       u.protocol === 'https:' &&
       (ALLOWED_NAV_HOSTS.includes(u.hostname) ||
-        ALLOWED_NAV_HOST_SUFFIXES.some((s) => u.hostname.endsWith(s)))
+        [...ALLOWED_NAV_HOST_SUFFIXES, ...ALLOWED_NAV_APP_SUFFIXES].some((s) =>
+          u.hostname.endsWith(s)
+        ))
     );
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 function isOpenableExternal(urlStr) {

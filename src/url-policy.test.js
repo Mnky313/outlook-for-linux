@@ -14,6 +14,8 @@ assert.strictEqual(isInternalNav('https://evil-duosecurity.com/x'), false);
 assert.strictEqual(isInternalNav('https://login.microsoft.com/common/oauth2'), true);
 
 // isAuthHost (auth-flow context detection)
+assert.strictEqual(isInternalNav('https://outlook.cloud.microsoft/mail/?prompt=select_account'), true);
+assert.strictEqual(isInternalNav('https://m365.cloud.microsoft/mail'), true);
 assert.strictEqual(isAuthHost('https://login.microsoftonline.com/common/oauth2'), true);
 assert.strictEqual(isAuthHost('https://device.login.microsoftonline.com/x'), true);
 assert.strictEqual(isAuthHost('https://signup.live.com/signup'), true);
