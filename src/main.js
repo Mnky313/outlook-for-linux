@@ -9,6 +9,10 @@ const START_URL = 'https://outlook.office.com/mail';
 
 // --- Link routing: single choke point for every webContents the app creates ---
 
+// Strip the Electron marker so Microsoft's browser gating serves the full page.
+// Only webContents.setUserAgent changes navigator.userAgent (Electron 44 ignores
+// the --user-agent Chromium switch); session.setUserAgent covers request headers.
+
 function openInBrowser(url) {
   if (!isOpenableExternal(url)) {
     console.error(`[url-policy] dropped non-openable URL: ${url}`);
@@ -28,17 +32,6 @@ app.on('web-contents-created', (_e, wc) => {
       openInBrowser(url);
     }
   });
-});
-
-// --- Session hardening / permissions / user agent ---
-
-app.whenReady().then(() => {
-  const sess = session.fromPartition('persist:outlook');
-  sess.setUserAgent(app.userAgentFallback.replace(/ Electron\/\S+/, ''));
-  sess.setPermissionRequestHandler((_wc, permission, cb) => {
-    cb(['notifications', 'media', 'fullscreen', 'clipboard-sanitized-write'].includes(permission));
-  });
-  createWindow();
 });
 
 // --- Window state persistence (~zero deps) ---
@@ -74,8 +67,34 @@ function saveWindowState(win) {
 
 let mainWindow = null;
 
-const gotLock = app.requestSingleInstanceLock();
-if (!gotLock) {
+function createWindow(strippedUA) {
+  const state = loadWindowState();
+  mainWindow = new BrowserWindow({
+    x: state.x,
+    y: state.y,
+    width: state.width,
+    height: state.height,
+    minWidth: 480,
+    minHeight: 320,
+    title: 'Outlook',
+    backgroundColor: '#f3f2f1',
+    show: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      partition: 'persist:outlook',
+      sandbox: true,
+      contextIsolation: true,
+    },
+  });
+  if (state.isMaximized) mainWindow.maximize();
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.on('close', () => saveWindowState(mainWindow));
+  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.webContents.setUserAgent(strippedUA);
+  mainWindow.loadURL(START_URL);
+}
+
+if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -84,58 +103,41 @@ if (!gotLock) {
     mainWindow.focus();
   });
 
-  function createWindow() {
-    const state = loadWindowState();
-    mainWindow = new BrowserWindow({
-      x: state.x,
-      y: state.y,
-      width: state.width,
-      height: state.height,
-      minWidth: 480,
-      minHeight: 320,
-      title: 'Outlook',
-      backgroundColor: '#f3f2f1',
-      show: false,
-      autoHideMenuBar: true,
-      webPreferences: {
-        partition: 'persist:outlook',
-        sandbox: true,
-        contextIsolation: true,
-      },
+  app.whenReady().then(() => {
+    const strippedUA = app.userAgentFallback
+      .replace(/ Electron\/\S+/, '')
+      .replace(/ {2,}/g, ' ');
+
+    const sess = session.fromPartition('persist:outlook');
+    sess.setUserAgent(strippedUA);
+    sess.setPermissionRequestHandler((_wc, permission, cb) => {
+      cb(['notifications', 'media', 'fullscreen', 'clipboard-sanitized-write'].includes(permission));
     });
-    if (state.isMaximized) mainWindow.maximize();
-    mainWindow.once('ready-to-show', () => mainWindow.show());
-    mainWindow.on('close', () => saveWindowState(mainWindow));
-    mainWindow.on('closed', () => { mainWindow = null; });
-    mainWindow.loadURL(START_URL);
-  }
 
-  const menuTemplate = [
-    {
-      label: 'App',
-      submenu: [{ role: 'quit' }],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' }, { role: 'redo' }, { type: 'separator' },
-        { role: 'cut' }, { role: 'copy' }, { role: 'paste' },
-        { role: 'selectAll' },
-      ],
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' },
-      ],
-    },
-  ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate([
+      {
+        label: 'App',
+        submenu: [{ role: 'quit' }],
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' }, { role: 'redo' }, { type: 'separator' },
+          { role: 'cut' }, { role: 'copy' }, { role: 'paste' },
+          { role: 'selectAll' },
+        ],
+      },
+      {
+        label: 'View',
+        submenu: [
+          { role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' },
+          { type: 'separator' },
+          { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' },
+        ],
+      },
+    ]));
 
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
-
-  app.on('window-all-closed', () => {
-    app.quit();
+    createWindow(strippedUA);
   });
+
 }
