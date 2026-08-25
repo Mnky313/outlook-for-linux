@@ -1,14 +1,15 @@
-# Maintainer: thanic
+# Maintainer: itonia149 <itonia149@users.noreply.github.com>
+# Contributor: itonia149 <itonia149@users.noreply.github.com>
 pkgname=outlook-for-linux
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="Unofficial Electron wrapper for Microsoft Outlook Web"
 arch=('any')
-url="https://github.com/thanic/outlook-for-linux"
+url="https://github.com/itonia149/outlook-for-linux"
 license=('MIT')
 depends=('electron' 'hicolor-icon-theme')
-source=("$pkgname-$pkgver.tar.gz")
-sha256sums=('SKIP')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/itonia149/outlook-for-linux/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('1b903f75f4c9538ce7b95474b3220e15ff7c8c3d3c8595a60323023138405507')
 
 package() {
   cd "$srcdir/$pkgname-$pkgver"
@@ -35,4 +36,6 @@ EOF
     install -Dm644 "assets/icons/$pkgname-$size.png" \
       "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$pkgname.png"
   done
+  install -Dm644 assets/$pkgname.svg \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
 }

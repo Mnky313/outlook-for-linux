@@ -1,0 +1,13 @@
+pkgbase = outlook-for-linux
+	pkgdesc = Unofficial Electron wrapper for Microsoft Outlook Web
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/itonia149/outlook-for-linux
+	arch = any
+	license = MIT
+	depends = electron
+	depends = hicolor-icon-theme
+	source = outlook-for-linux-0.1.0.tar.gz::https://github.com/itonia149/outlook-for-linux/archive/refs/tags/v0.1.0.tar.gz
+	sha256sums = 1b903f75f4c9538ce7b95474b3220e15ff7c8c3d3c8595a60323023138405507
+
+pkgname = outlook-for-linux
