@@ -44,3 +44,15 @@ until then run from source as above.
 - Window state (bounds, maximized) persists to `$XDG_CONFIG_HOME/outlook-for-linux/window-state.json`.
 - Permissions granted to the page: notifications, media (camera/mic), fullscreen,
   sanitized clipboard write. Everything else denied.
+
+## Troubleshooting
+
+Two stderr messages at startup are known-benign on Wayland and safe to ignore:
+
+- `'--ozone-platform=wayland' is not compatible with Vulkan` — Electron spawns its
+  GPU process via zygote without the Wayland ozone flags (electron/electron#50455);
+  Chromium logs this and falls back to GL compositing. Not app-controllable;
+  no command-line switch silences it.
+- `vaInitialize failed: unknown libva error` — no VA-API driver for your GPU.
+  On Intel Gen12+ (Alder Lake and newer) install `intel-media-driver` to get
+  hardware video decode; without it Chromium software-decodes video.
