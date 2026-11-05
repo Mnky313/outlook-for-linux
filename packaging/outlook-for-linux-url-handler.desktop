@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Outlook
+Comment=Unofficial Microsoft Outlook Web wrapper
+Exec=outlook-for-linux --open-url @@u %U @@
+Icon=outlook-for-linux
+MimeType=x-schema-handler/mailto;
+StartupWMClass=Outlook - Compose
+Categories=Network;Email;
+Terminal=false

@@ -1,18 +1,18 @@
-# Maintainer: itonia149 <itonia149@users.noreply.github.com>
-# Contributor: itonia149 <itonia149@users.noreply.github.com>
+# Maintainer: katzteam <Mnky313@users.noreply.github.com>
+# Contributor: katzteam <Mnky313@users.noreply.github.com>
 pkgname=outlook-for-linux
-pkgver=0.1.1
+pkgver=0.1.2
 pkgrel=1
 pkgdesc="Unofficial Electron wrapper for Microsoft Outlook Web"
 arch=('any')
-url="https://github.com/itonia149/outlook-for-linux"
+url="https://github.com/Mnky313/outlook-for-linux"
 license=('MIT')
 depends=('electron' 'hicolor-icon-theme')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/itonia149/outlook-for-linux/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('68276bff7d729eba052adce9090f0f6698ae0506184e6dea2875e4428e060d39')
+source=("$pkgname-$pkgver.tar")
+sha256sums=('SKIP')
 
 package() {
-  cd "$srcdir/$pkgname-$pkgver"
+  cd "$srcdir"
 
   # Application sources (no node_modules: electron comes from the system dep)
   install -d "$pkgdir/usr/lib/$pkgname"
@@ -27,9 +27,13 @@ exec electron /usr/lib/$pkgname "\$@"
 EOF
   chmod 755 "$pkgdir/usr/bin/$pkgname"
 
-  # Desktop entry (deliberately no MimeType= handler: not replacing the user's mail client)
+  # Desktop entry
   install -Dm644 packaging/$pkgname.desktop \
     "$pkgdir/usr/share/applications/$pkgname.desktop"
+
+  # URL handler entry
+  install -Dm644 packaging/$pkgname-url-handler.desktop \
+    "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
   # Icons into hicolor
   for size in 16 32 48 64 128 256 512; do

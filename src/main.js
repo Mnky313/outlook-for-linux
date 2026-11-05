@@ -77,7 +77,41 @@ function saveWindowState(win) {
 
 // --- Main window & lifecycle ---
 
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient("mailto", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient("mailto");
+}
+
+
 let mainWindow = null;
+let composeWindow = null;
+let composeUrl = null;
+
+function createComposeWindow(url) {
+  composeUrl = encodeURI("https://outlook.cloud.microsoft/mail/deeplink/compose?"+url.replace(/mailto:\/*/, "to="));
+  composeWindow = new BrowserWindow({
+    minWidth: 480,
+    minHeight: 320,
+    title: 'Outlook - Compose',
+    icon: APP_ICON,
+    backgroundColor: '#f3f2f1',
+    show: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      partition: 'persist:outlook',
+      sandbox: true,
+      contextIsolation: false,
+    },
+  });
+  composeWindow.once('ready-to-show', () => composeWindow.show());
+  composeWindow.on('closed', () => { composeWindow = null; });
+  composeWindow.loadURL(composeUrl);
+}
 
 function createWindow(strippedUA) {
   const state = loadWindowState();
@@ -96,7 +130,7 @@ function createWindow(strippedUA) {
     webPreferences: {
       partition: 'persist:outlook',
       sandbox: true,
-      contextIsolation: true,
+      contextIsolation: false,
     },
   });
   if (state.isMaximized) mainWindow.maximize();
@@ -107,14 +141,22 @@ function createWindow(strippedUA) {
   mainWindow.loadURL(START_URL);
 }
 
+app.on("open-url", (event, url) => {
+  createComposeWindow(url);
+});
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
-    if (!mainWindow) return;
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
+  app.on("second-instance", (event, commands, workingDir) => {
+    const mailToUrl = commands.find(item => item.startsWith("mailto:"));
+    if (mailToUrl) {
+      createComposeWindow(mailToUrl);
+    } else {
+      return;
+    }
   });
+
 
   app.whenReady().then(() => {
     const strippedUA = app.userAgentFallback
@@ -150,7 +192,13 @@ if (!app.requestSingleInstanceLock()) {
       },
     ]));
 
-    createWindow(strippedUA);
+    const mailToUrl = process.argv.find(item => item.startsWith("mailto:"));
+    if (mailToUrl) {
+      createComposeWindow(mailToUrl);
+    } else {
+      createWindow(strippedUA);
+    }
+    
   });
 
 }

@@ -34,10 +34,16 @@ npm test        # url-policy unit asserts (plain node)
 
 Reference PKGBUILD in `packaging/`. It installs app files to `/usr/lib/outlook-for-linux`,
 a `/usr/bin/outlook-for-linux` launcher using system `electron`, plus `.desktop`
-entry and hicolor icons. No `MimeType=` registration — your default mail client is untouched.
+entry and hicolor icons.
 
-Finalizing the PKGBUILD (real tarball source + checksums) happens at first release;
-until then run from source as above.
+## Install (package from source)
+```sh
+tar cvf outlook-for-linux-*version*.tar src assets packaging LICENSE package.json README.md
+mv outlook-for-linux-*version*.tar packaging/
+cd packaging
+makepkg .
+sudo pacman -U outlook-for-linux-*version*-1-any.pkg.tar.zst
+```
 
 ## Install (user-local, from this checkout)
 
